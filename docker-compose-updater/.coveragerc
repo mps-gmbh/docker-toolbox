@@ -1,0 +1,7 @@
+[run]
+branch = True
+omit =
+    ./src/test/*
+[report]
+    fail_under = 70
+    show_missing = True

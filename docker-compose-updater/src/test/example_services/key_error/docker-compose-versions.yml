@@ -1,0 +1,4 @@
+manual_update:
+  dummy-fail: 3\.[0-9]+\.[0-9]+
+auto_update:
+  dummy-fail: 3\.[0-9]+\.[0-9]+
