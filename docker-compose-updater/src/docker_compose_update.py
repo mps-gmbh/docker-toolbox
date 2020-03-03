@@ -223,12 +223,10 @@ class Updater(object):
                         self.path, dockerfile_path, "Dockerfile"
                     )
 
-                    version = self.get_version_from_dockerfile(
-                        dockerfile_path
-                    )
+                    version = self.get_version_from_dockerfile(dockerfile_path)
                     # If no version was found skip this service
                     if version is None:
-                        return 
+                        return
                     print(version)
                     image, current_version = version
 

@@ -18,9 +18,9 @@ clean:
 	rm -rf env-test/
 
 lint: env-test
-	env-test/bin/black --check ./docker_compose_update.py
+	env-test/bin/black --check ./src/docker_compose_update.py
 fix-lint: env-test
-	env-test/bin/black ./docker_compose_update.py
+	env-test/bin/black ./src/docker_compose_update.py
 
 requirements: requirements.txt
 requirements.txt: env-build requirements.in
@@ -29,8 +29,3 @@ requirements.txt: env-build requirements.in
 test-requirements: test-requirements.txt
 test-requirements.txt: test-requirements.in env-build
 	env-build/bin/pip-compile test-requirements.in
-
-test-docker:
-	docker build -t multi-instance-manager -f tests/Dockerfile-multi-instance-manager .
-	docker run multi-instance-manager 
-
