@@ -1,6 +1,6 @@
 ## Docker-Toolbox
 
-This repository contains a set of usefull sevices to manage and operate your local docker farm.
+This repository contains a set of useful services to manage and operate your local docker farm.
 
 
 ### Docker-Compose-Updater

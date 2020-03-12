@@ -1,6 +1,6 @@
 ## docker-compose-update - Keep your docker-compose files and containers up to date
 
-`docker-compose-update` is an update script that tracks your docker-compose files for new updates and rebuilds the described containers.
+`docker-compose-update` is an update script that tracks your docker-compose files for new updates and rebuilds containers if requested.
 
 
 ### Usage
