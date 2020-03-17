@@ -392,22 +392,14 @@ def get_commandline_arguments():
         + "subdirectories and run the update there",
         action="store_true",
     )
-    parser.add_argument("--logfile", help="path to a file the output is passed to")
     parser.add_argument(
         "-d", "--dryrun", help="only show what would happen", action="store_true"
-    )
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument(
-        "-v", "--verbosity", help="increase output verbosity", action="store_true"
-    )
-    group.add_argument(
-        "-q", "--quiet", help="no output except errors", action="store_true"
     )
     args = parser.parse_args()
     return args
 
 
-def initialize_logging(commandline_args):
+def initialize_logging():
     """Initialize logging as given in the commandline arguments
 
     :commandline_args: namespace with commandline arguments including verbosity
@@ -416,24 +408,18 @@ def initialize_logging(commandline_args):
 
     """
     loglevel = "INFO"
-    if commandline_args.verbosity:
-        loglevel = "DEBUG"
-    if commandline_args.quiet:
-        loglevel = "ERROR"
+    try:
+        loglevel = os.environ["LOGLEVEL"]
+    except KeyError:
+        pass
+    try:
+        loglevel = getattr(logging, loglevel.upper())
+    except AttributeError:
+        text = f"Cannot set LOGLEVEL: Unknown LOGLEVEL {loglevel}"
+        logging.error(text)
+        error_mail(text)
+        exit(1)
 
-    logfile = commandline_args.logfile
-
-    # If logfile is given, generate a new logger with file handling
-    if logfile:
-        filehandler = logging.FileHandler(logfile, "a")
-        formatter = logging.Formatter()
-        filehandler.setFormatter(formatter)
-        logger = logging.getLogger()
-        for handler in logger.handlers:
-            logger.removeHandler(handler)
-        logger.addHandler(filehandler)
-
-    loglevel = getattr(logging, loglevel.upper())
     logging.getLogger().setLevel(loglevel)
 
 
@@ -522,8 +508,9 @@ def main():
     try:
         # Initialize Logging
         logging.basicConfig(level=logging.DEBUG)
+        initialize_logging()
+        # Get Commandline Arguments
         args = get_commandline_arguments()
-        initialize_logging(args)
 
         # If recursive option is not given just run the updater for the given path
         if not args.recursive:
