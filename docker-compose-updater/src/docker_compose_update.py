@@ -79,7 +79,7 @@ class Updater(object):
             return
 
         mail_text = (
-            "Updates in directory " + self.path + " on " + socket.gethostname() + "\n"
+            "Updates in directory " + self.path + " on " + get_hostname() + "\n"
         )
         for service_type in self.updated_services:
             if service_type == "auto_update":
@@ -117,7 +117,7 @@ class Updater(object):
         write_email(
             mail_text,
             "[Dockerupdate]["
-            + socket.gethostname()
+            + get_hostname()
             + "] Service Update for "
             + self.path,
         )
@@ -368,6 +368,20 @@ class Service(object):
         logging.debug("Newest version: %s", self.next_version)
 
 
+def get_hostname():
+    """ Get hostname from env variables or if not available directly form host
+    :returns: hostname
+
+    """
+    try:
+        return os.environ["DOCKER_HOST_NAME"]
+    except KeyError:
+        logging.warning(
+            "Env variable DOCKER_HOST_NAME is not set, defaulting to hostname"
+        )
+        return socket.gethostname()
+
+
 @contextmanager
 def working_directory(directory):
     owd = os.getcwd()
@@ -424,9 +438,7 @@ def initialize_logging():
 
 
 def error_mail(error):
-    subject = (
-        "[Dockerupdate][" + socket.gethostname() + "] Error in docker-compose-update"
-    )
+    subject = "[Dockerupdate][" + get_hostname() + "] Error in docker-compose-update"
     text = "The following error uccured:\n" + str(error)
     write_email(text, subject)
 
