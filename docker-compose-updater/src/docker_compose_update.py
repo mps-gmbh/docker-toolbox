@@ -536,6 +536,10 @@ def main():
             for file in files:
                 if file == "docker-compose-versions.yml":
                     pathlist.append(root)
+        if not pathlist:
+            text = "No docker-compose-versions.yml files where found in the given path"
+            logging.warning(text)
+            error_mail(text)
         for path in pathlist:
             abspath = os.path.abspath(path)
             logging.info(
