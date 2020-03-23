@@ -546,11 +546,8 @@ def main():
             updater.run()
     except Exception:
         # If something goes wrong try sending an E-Mail
-        if not args.dryrun:
-            logging.critical(
-                "An unhandled error occured, sending a mail about the error"
-            )
-            error_mail("Unhandled error")
+        logging.critical("An unhandled error occured, sending a mail about the error")
+        error_mail("Unhandled error")
         raise
 
 
