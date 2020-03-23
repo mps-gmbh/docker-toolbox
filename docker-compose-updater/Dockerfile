@@ -8,6 +8,17 @@ FROM python:3.6-alpine
 
 WORKDIR /
 
+# Install Docker and docker-compose
+RUN apk add \
+docker \
+gcc \
+libc-dev \
+libffi-dev \
+make \
+openssl-dev \
+python-dev \
+&& pip install docker-compose
+
 COPY requirements.txt /
 RUN pip install -r ./requirements.txt && rm /requirements.txt
 COPY src/docker_compose_update.py /docker_compose_update.py
