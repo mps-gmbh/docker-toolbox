@@ -519,7 +519,7 @@ def main():
 
     try:
         # Initialize Logging
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
         initialize_logging()
         # Get Commandline Arguments
         args = get_commandline_arguments()
