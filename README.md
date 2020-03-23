@@ -5,7 +5,7 @@ This repository contains a set of useful services to manage and operate your loc
 
 ### Docker-Compose-Updater
 
-Tracks and updates your local docker-compose files, see the [readme](docker-compose-updater/README.md) for further details.
+Tracks Docker Images on Dockerhub and updates your local docker-compose files with new versions, see the [readme](docker-compose-updater/README.md) for further details.
 
 
 ### License
