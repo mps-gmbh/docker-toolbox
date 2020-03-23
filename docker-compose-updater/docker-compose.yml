@@ -1,0 +1,27 @@
+version: '3.7'
+
+services:
+  updater:
+    env_file: .env
+    # image: mpsmed/docker-compose-updater
+    build: .
+    # This is important if cron is used due to the zombie reaping problem and
+    # issues with signal handling, see:
+    # https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/
+    init: true
+    environment:
+      # Required Env Variables
+      - DOCKER_HOST_NAME
+      - MAIL_SMTP_SERVER
+      - MAIL_FROM
+      - MAIL_TO
+      - MAIL_SMTP_SERVER_PORT
+      - MAIL_USER
+      - MAIL_PASSWORD
+      - LOGLEVEL
+    volumes:
+      - "./src/test/example_services/base:/compose-mount"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./crontab:/crontab:ro"
+    # Run cron to start the script
+    entrypoint: ["/cron-init.sh"]
