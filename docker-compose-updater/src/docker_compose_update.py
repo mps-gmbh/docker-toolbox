@@ -78,9 +78,7 @@ class Updater(object):
             logging.info("No changes for services in %s where found.", self.path)
             return
 
-        mail_text = (
-            "Updates in directory " + self.path + " on " + get_hostname() + "\n"
-        )
+        mail_text = "Updates in directory " + self.path + " on " + get_hostname() + "\n"
         for service_type in self.updated_services:
             if service_type == "auto_update":
                 mail_text = mail_text + (
@@ -116,10 +114,7 @@ class Updater(object):
             return
         write_email(
             mail_text,
-            "[Dockerupdate]["
-            + get_hostname()
-            + "] Service Update for "
-            + self.path,
+            "[Dockerupdate][" + get_hostname() + "] Service Update for " + self.path,
         )
 
     def build(self):
@@ -519,7 +514,9 @@ def main():
 
     try:
         # Initialize Logging
-        logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+        logging.basicConfig(
+            level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
+        )
         initialize_logging()
         # Get Commandline Arguments
         args = get_commandline_arguments()
