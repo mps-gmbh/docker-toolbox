@@ -201,7 +201,7 @@ class Updater(object):
 
                 dockerfile_path = ""
                 try:
-                    image, current_version = docker_compose_service["image"].split(":")
+                    image = docker_compose_service["image"]
                 except KeyError:
                     # If image does not exist, there must be a build section
                     logging.debug(
@@ -218,11 +218,15 @@ class Updater(object):
                         self.path, dockerfile_path, "Dockerfile"
                     )
 
-                    version = self.get_version_from_dockerfile(dockerfile_path)
+                    image = self.get_version_from_dockerfile(dockerfile_path)
                     # If no version was found skip this service
-                    if version is None:
+                    if image is None:
                         return
-                    image, current_version = version
+
+                if ":" in image:
+                    image, current_version = image.split(":")
+                else:
+                    current_version = "latest"
 
                 new_service = Service(
                     image, search_regex, current_version, dockerfile_path
@@ -253,9 +257,15 @@ class Updater(object):
             if re.search("^ *" + service_name + ": *$", line):
                 inside_service_section = True
             if inside_service_section and re.search("^ *image:", line):
-                docker_compose_text[i] = line.replace(
-                    service.current_version, service.next_version
-                )
+                # If current version is not present there was no version
+                if service.current_version not in docker_compose_text[i]:
+                    docker_compose_text[i] = line.replace(
+                        service.image, service.image + ":" + service.next_version
+                    )
+                else:
+                    docker_compose_text[i] = line.replace(
+                        service.current_version, service.next_version
+                    )
                 # As the same image can also be used for other services we
                 # have to stop here
                 break
@@ -300,7 +310,7 @@ class Updater(object):
         for i, _ in enumerate(dockerfile):
             line = dockerfile[i]
             if line.startswith("FROM"):
-                img_version = line.split()[1].split(":")
+                img_version = line.split()[1]
                 break
         else:
             text = "Dockerfile at " + path + " seems to be missing a FROM statement"

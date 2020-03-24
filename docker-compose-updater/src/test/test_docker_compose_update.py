@@ -34,6 +34,15 @@ class TestDockerComposeUpdate:
             ("base", True, False, "    image: python:latest\n", None, 404),
             ("base", False, True, "    image: python:3.8.2-buster\n", None, 200),
             ("base", False, False, "    image: python:latest\n", None, 404),
+            ("no_init_version", True, False, "    image: python\n", None, 200),
+            (
+                "no_init_version",
+                False,
+                True,
+                "    image: python:3.8.2-buster\n",
+                None,
+                200,
+            ),
             ("empty_versions", False, False, "    image: python:latest\n", None, 200),
             ("up_to_date", False, False, "    image: python:3.8.2-buster\n", None, 200),
             (
@@ -191,7 +200,7 @@ class TestDockerComposeUpdate:
                 "WARNING": logging.WARNING,
                 "INFO": logging.INFO,
                 "DEBUG": logging.DEBUG,
-                "": logging.INFO
+                "": logging.INFO,
             }
             if loglevel_str:
                 os.environ = {"LOGLEVEL": loglevel_str}
