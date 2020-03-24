@@ -4,7 +4,7 @@
 # this when modifying the file
 # https://docs.docker.com/develop/develop-images/dockerfile_best-practices/
 
-FROM python:3.6-alpine
+FROM python:3.8.2-alpine3.11
 
 WORKDIR /
 
