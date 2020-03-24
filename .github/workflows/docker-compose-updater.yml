@@ -1,0 +1,41 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: Python application
+
+on:
+  push:
+    paths:
+      - 'docker-compose-updater/**'
+      - '.github/**'
+    branches: [ master ]
+  pull_request:
+    paths:
+      - 'docker-compose-updater/**'
+      - '.github/**'
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.8
+    - name: Install dependencies
+      run: |
+        cd docker-compose-updater
+        pip install -r test-requirements.txt
+        pip install -r requirements.txt
+    - name: Lint with black
+      run: |
+        cd docker-compose-updater
+        black --check ./src/docker_compose_update.py
+    - name: Test with pytest
+      run: |
+        cd docker-compose-updater
+        pytest --cov-report term-missing --cov=src
