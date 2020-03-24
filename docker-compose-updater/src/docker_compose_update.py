@@ -222,7 +222,6 @@ class Updater(object):
                     # If no version was found skip this service
                     if version is None:
                         return
-                    print(version)
                     image, current_version = version
 
                 new_service = Service(
@@ -285,7 +284,6 @@ class Updater(object):
                     [line.split()[0], service.image + ":" + service.next_version, "\n"]
                 )
                 break
-        print(service.dockerfile_path)
         with open(service.dockerfile_path, "w") as stream:
             stream.writelines(dockerfile)
 
