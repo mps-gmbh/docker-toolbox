@@ -34,6 +34,14 @@ class TestDockerComposeUpdate:
             ("base", True, False, "    image: python:latest\n", None, 404),
             ("base", False, True, "    image: python:3.8.2-buster\n", None, 200),
             ("base", False, False, "    image: python:latest\n", None, 404),
+            (
+                "yaml_error_in_versions",
+                False,
+                False,
+                "    image: python:latest\n",
+                None,
+                200,
+            ),
             ("no_init_version", True, False, "    image: python\n", None, 200),
             (
                 "no_init_version",

@@ -164,6 +164,10 @@ class Updater(object):
         except FileNotFoundError as error:
             self.error_mail(error)
             exit(1)
+        except yaml.parser.ParserError as error:
+            text = f"A YAML error occured: {error}"
+            self.error_mail(text)
+            return
         if self.docker_compose is None:
             text = "Empty docker-compose.yml at " + self.path
             self.error_mail(text)
