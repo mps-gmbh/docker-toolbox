@@ -1,10 +1,6 @@
 #!/usr/bin/python3
 """
 This module updates the docker images of the docker-compose on the given path
-
-Author: Janosch Deurer
-Mail: deurer@mps-med.de
-
 """
 from contextlib import contextmanager
 from email.mime.text import MIMEText
@@ -91,7 +87,7 @@ class Updater(object):
                     + "they are configured for manual updates only:\n\n"
                 )
 
-            for service_name, service in self.services[service_type].items():
+            for service_name, service in self.updated_services[service_type].items():
                 mail_text = (
                     mail_text
                     + service_name
@@ -328,10 +324,9 @@ class Updater(object):
 
 class Service(object):
 
-    """Docstring for Service. """
+    """TODO: Docstring for Service. """
 
     def __init__(self, image, search_regex, current_version, dockerfile_path):
-        """TODO: to be defined1. """
         self.image = image
         self.search_regex = search_regex
         self.current_version = current_version
