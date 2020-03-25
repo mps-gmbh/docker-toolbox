@@ -1,10 +1,6 @@
 #!/usr/bin/python3
 """
 This module updates the docker images of the docker-compose on the given path
-
-Author: Janosch Deurer
-Mail: deurer@mps-med.de
-
 """
 from contextlib import contextmanager
 from email.mime.text import MIMEText
@@ -78,9 +74,7 @@ class Updater(object):
             logging.info("No changes for services in %s where found.", self.path)
             return
 
-        mail_text = (
-            "Updates in directory " + self.path + " on " + socket.gethostname() + "\n"
-        )
+        mail_text = "Updates in directory " + self.path + " on " + get_hostname() + "\n"
         for service_type in self.updated_services:
             if service_type == "auto_update":
                 mail_text = mail_text + (
@@ -93,7 +87,7 @@ class Updater(object):
                     + "they are configured for manual updates only:\n\n"
                 )
 
-            for service_name, service in self.services[service_type].items():
+            for service_name, service in self.updated_services[service_type].items():
                 mail_text = (
                     mail_text
                     + service_name
@@ -116,10 +110,7 @@ class Updater(object):
             return
         write_email(
             mail_text,
-            "[Dockerupdate]["
-            + socket.gethostname()
-            + "] Service Update for "
-            + self.path,
+            "[Dockerupdate][" + get_hostname() + "] Service Update for " + self.path,
         )
 
     def build(self):
@@ -173,6 +164,10 @@ class Updater(object):
         except FileNotFoundError as error:
             self.error_mail(error)
             exit(1)
+        except yaml.parser.ParserError as error:
+            text = f"A YAML error occured: {error}"
+            self.error_mail(text)
+            return
         if self.docker_compose is None:
             text = "Empty docker-compose.yml at " + self.path
             self.error_mail(text)
@@ -206,7 +201,7 @@ class Updater(object):
 
                 dockerfile_path = ""
                 try:
-                    image, current_version = docker_compose_service["image"].split(":")
+                    image = docker_compose_service["image"]
                 except KeyError:
                     # If image does not exist, there must be a build section
                     logging.debug(
@@ -223,12 +218,15 @@ class Updater(object):
                         self.path, dockerfile_path, "Dockerfile"
                     )
 
-                    version = self.get_version_from_dockerfile(dockerfile_path)
+                    image = self.get_version_from_dockerfile(dockerfile_path)
                     # If no version was found skip this service
-                    if version is None:
+                    if image is None:
                         return
-                    print(version)
-                    image, current_version = version
+
+                if ":" in image:
+                    image, current_version = image.split(":")
+                else:
+                    current_version = "latest"
 
                 new_service = Service(
                     image, search_regex, current_version, dockerfile_path
@@ -259,9 +257,15 @@ class Updater(object):
             if re.search("^ *" + service_name + ": *$", line):
                 inside_service_section = True
             if inside_service_section and re.search("^ *image:", line):
-                docker_compose_text[i] = line.replace(
-                    service.current_version, service.next_version
-                )
+                # If current version is not present there was no version
+                if service.current_version not in docker_compose_text[i]:
+                    docker_compose_text[i] = line.replace(
+                        service.image, service.image + ":" + service.next_version
+                    )
+                else:
+                    docker_compose_text[i] = line.replace(
+                        service.current_version, service.next_version
+                    )
                 # As the same image can also be used for other services we
                 # have to stop here
                 break
@@ -290,7 +294,6 @@ class Updater(object):
                     [line.split()[0], service.image + ":" + service.next_version, "\n"]
                 )
                 break
-        print(service.dockerfile_path)
         with open(service.dockerfile_path, "w") as stream:
             stream.writelines(dockerfile)
 
@@ -307,7 +310,7 @@ class Updater(object):
         for i, _ in enumerate(dockerfile):
             line = dockerfile[i]
             if line.startswith("FROM"):
-                img_version = line.split()[1].split(":")
+                img_version = line.split()[1]
                 break
         else:
             text = "Dockerfile at " + path + " seems to be missing a FROM statement"
@@ -325,10 +328,9 @@ class Updater(object):
 
 class Service(object):
 
-    """Docstring for Service. """
+    """TODO: Docstring for Service. """
 
     def __init__(self, image, search_regex, current_version, dockerfile_path):
-        """TODO: to be defined1. """
         self.image = image
         self.search_regex = search_regex
         self.current_version = current_version
@@ -368,6 +370,20 @@ class Service(object):
         logging.debug("Newest version: %s", self.next_version)
 
 
+def get_hostname():
+    """ Get hostname from env variables or if not available directly form host
+    :returns: hostname
+
+    """
+    try:
+        return os.environ["DOCKER_HOST_NAME"]
+    except KeyError:
+        logging.warning(
+            "Env variable DOCKER_HOST_NAME is not set, defaulting to hostname"
+        )
+        return socket.gethostname()
+
+
 @contextmanager
 def working_directory(directory):
     owd = os.getcwd()
@@ -392,22 +408,14 @@ def get_commandline_arguments():
         + "subdirectories and run the update there",
         action="store_true",
     )
-    parser.add_argument("--logfile", help="path to a file the output is passed to")
     parser.add_argument(
         "-d", "--dryrun", help="only show what would happen", action="store_true"
-    )
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument(
-        "-v", "--verbosity", help="increase output verbosity", action="store_true"
-    )
-    group.add_argument(
-        "-q", "--quiet", help="no output except errors", action="store_true"
     )
     args = parser.parse_args()
     return args
 
 
-def initialize_logging(commandline_args):
+def initialize_logging():
     """Initialize logging as given in the commandline arguments
 
     :commandline_args: namespace with commandline arguments including verbosity
@@ -415,32 +423,20 @@ def initialize_logging(commandline_args):
     :returns: None
 
     """
-    loglevel = "INFO"
-    if commandline_args.verbosity:
-        loglevel = "DEBUG"
-    if commandline_args.quiet:
-        loglevel = "ERROR"
+    loglevel = os.environ.get("LOGLEVEL", "INFO")
+    try:
+        loglevel = getattr(logging, loglevel.upper())
+    except AttributeError:
+        text = f"Cannot set LOGLEVEL: Unknown LOGLEVEL {loglevel}"
+        logging.error(text)
+        error_mail(text)
+        exit(1)
 
-    logfile = commandline_args.logfile
-
-    # If logfile is given, generate a new logger with file handling
-    if logfile:
-        filehandler = logging.FileHandler(logfile, "a")
-        formatter = logging.Formatter()
-        filehandler.setFormatter(formatter)
-        logger = logging.getLogger()
-        for handler in logger.handlers:
-            logger.removeHandler(handler)
-        logger.addHandler(filehandler)
-
-    loglevel = getattr(logging, loglevel.upper())
     logging.getLogger().setLevel(loglevel)
 
 
 def error_mail(error):
-    subject = (
-        "[Dockerupdate][" + socket.gethostname() + "] Error in docker-compose-update"
-    )
+    subject = "[Dockerupdate][" + get_hostname() + "] Error in docker-compose-update"
     text = "The following error uccured:\n" + str(error)
     write_email(text, subject)
 
@@ -521,9 +517,12 @@ def main():
 
     try:
         # Initialize Logging
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(
+            level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
+        )
+        initialize_logging()
+        # Get Commandline Arguments
         args = get_commandline_arguments()
-        initialize_logging(args)
 
         # If recursive option is not given just run the updater for the given path
         if not args.recursive:
@@ -537,6 +536,10 @@ def main():
             for file in files:
                 if file == "docker-compose-versions.yml":
                     pathlist.append(root)
+        if not pathlist:
+            text = "No docker-compose-versions.yml files where found in the given path"
+            logging.warning(text)
+            error_mail(text)
         for path in pathlist:
             abspath = os.path.abspath(path)
             logging.info(
@@ -546,11 +549,8 @@ def main():
             updater.run()
     except Exception:
         # If something goes wrong try sending an E-Mail
-        if not args.dryrun:
-            logging.critical(
-                "An unhandled error occured, sending a mail about the error"
-            )
-            error_mail("Unhandled error")
+        logging.critical("An unhandled error occured, sending a mail about the error")
+        error_mail("Unhandled error")
         raise
 
 

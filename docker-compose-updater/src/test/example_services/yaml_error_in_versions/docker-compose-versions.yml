@@ -1,0 +1,5 @@
+manual_update:
+  dummy: 3\.[0-9]+\.[0-9]+
+  - bla
+auto_update:
+  dummy: 3\.[0-9]+\.[0-9]+

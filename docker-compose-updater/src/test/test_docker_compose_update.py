@@ -3,11 +3,10 @@ import pytest
 import os
 import requests
 import subprocess
-import argparse
 from unittest import mock
 from src.docker_compose_update import Updater
 from src.docker_compose_update import Service
-from src.docker_compose_update import get_commandline_arguments
+from src.docker_compose_update import initialize_logging
 
 
 class TestDockerComposeUpdate:
@@ -35,6 +34,23 @@ class TestDockerComposeUpdate:
             ("base", True, False, "    image: python:latest\n", None, 404),
             ("base", False, True, "    image: python:3.8.2-buster\n", None, 200),
             ("base", False, False, "    image: python:latest\n", None, 404),
+            (
+                "yaml_error_in_versions",
+                False,
+                False,
+                "    image: python:latest\n",
+                None,
+                200,
+            ),
+            ("no_init_version", True, False, "    image: python\n", None, 200),
+            (
+                "no_init_version",
+                False,
+                True,
+                "    image: python:3.8.2-buster\n",
+                None,
+                200,
+            ),
             ("empty_versions", False, False, "    image: python:latest\n", None, 200),
             ("up_to_date", False, False, "    image: python:3.8.2-buster\n", None, 200),
             (
@@ -178,3 +194,38 @@ class TestDockerComposeUpdate:
         with open(dockerfile_path, "r") as f:
             dockerfile = f.readlines()
         assert dockerfile == []
+
+    @pytest.mark.parametrize(
+        "loglevel_str", ["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", ""]
+    )
+    def test_initialize_logging(self, loglevel_str):
+        with mock.patch("src.docker_compose_update.os") as os, mock.patch(
+            "src.docker_compose_update.logging"
+        ) as logging:
+            loglevel = {
+                "CRITICAL": logging.CRITICAL,
+                "ERROR": logging.ERROR,
+                "WARNING": logging.WARNING,
+                "INFO": logging.INFO,
+                "DEBUG": logging.DEBUG,
+                "": logging.INFO,
+            }
+            if loglevel_str:
+                os.environ = {"LOGLEVEL": loglevel_str}
+            else:
+                os.environ = {}
+            initialize_logging()
+            logging.getLogger().setLevel.assert_called_with(loglevel[loglevel_str])
+
+    def test_initialize_logging_error(self):
+        with mock.patch("src.docker_compose_update.os") as os, mock.patch(
+            "src.docker_compose_update.logging", autospec=True
+        ) as logging_mock:
+            os.environ = {"LOGLEVEL": "DUMMY"}
+            try:
+                initialize_logging()
+                assert False
+            except SystemExit:
+                pass
+            assert not logging_mock.getLogger().setLevel.called
+            assert logging_mock.error.called
