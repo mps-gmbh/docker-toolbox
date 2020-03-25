@@ -423,11 +423,7 @@ def initialize_logging():
     :returns: None
 
     """
-    loglevel = "INFO"
-    try:
-        loglevel = os.environ["LOGLEVEL"]
-    except KeyError:
-        pass
+    loglevel = os.environ.get("LOGLEVEL", "INFO")
     try:
         loglevel = getattr(logging, loglevel.upper())
     except AttributeError:
