@@ -1,0 +1,28 @@
+###########################################################################################################################
+# Playbook: Installing docker_compose_update
+###########################################################################################################################
+
+---
+- name: Create target directory
+  file:
+    path: "{{ docker_compose_update.target_path }}"
+    state: directory
+    recurse: yes
+
+- name: "Uploading files"
+  template:
+    src: "{{ item }}"
+    dest: "{{ docker_compose_update.target_path }}/{{ item }}"
+  loop:
+    - docker-compose.yml
+    - crontab
+    - .env
+- name: Run docker-compose up -d
+  command: docker-compose up -d
+  register: docker_compose_output
+  args:
+    chdir: "{{ docker_compose_update.target_path }}"
+- debug:
+    msg:
+      - "{{ docker_compose_output.stderr }}"
+      - "{{ docker_compose_output.stdout }}"

@@ -1,0 +1,14 @@
+---
+docker_compose_update:
+  target_path: "/srv/docker-toolbox/docker-compose-updater"
+  docker_compose_root: "/srv"
+  cron_exec_time: "0 3 * * *"
+  docker_env:
+    docker_host_name: "{{ ansible_hostname }}"
+    mail_smtp_server: mail.example.com
+    mail_from: updater@example.com
+    mail_to: janosch@example.com
+    mail_smtp_server_port: 465
+    mail_user:
+    mail_password:
+    loglevel: INFO
