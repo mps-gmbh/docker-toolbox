@@ -8,18 +8,15 @@
     path: "{{ docker_compose_update.target_path }}"
     state: directory
     recurse: yes
-- name: Uploading docker-compose.yml
+
+- name: "Uploading files"
   template:
-    src: docker-compose.yml
-    dest: "{{ docker_compose_update.target_path }}/docker-compose.yml"
-- name: Uploading crontab
-  template:
-    src: crontab
-    dest: "{{ docker_compose_update.target_path }}/crontab"
-- name: Uploading env file
-  template:
-    src: .env
-    dest: "{{ docker_compose_update.target_path }}/.env"
+    src: "{{ item }}"
+    dest: "{{ docker_compose_update.target_path }}/{{ item }}"
+  loop:
+    - docker-compose.yml
+    - crontab
+    - .env
 - name: Run docker-compose up -d
   command: docker-compose up -d
   register: docker_compose_output

@@ -1,11 +1,15 @@
+---
 all:
   children:
     docker-hosts:
       hosts:
-        hetzner:
+        dockerhost1:
           ansible_host: example.com
           ansible_port: 1234
         vars:
+          # Needed for docker-compose up alternativeley you can use a user that
+          # is in the docker group
+          ansible_user: root
           docker_compose_update:
             target_path: "/srv/docker-toolbox/docker-compose-updater"
             docker_compose_root: "/srv"
@@ -19,4 +23,3 @@ all:
               mail_user:
               mail_password:
               loglevel: INFO
-
