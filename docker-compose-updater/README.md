@@ -93,7 +93,8 @@ Cron can be configured in the crontab file.
 - `DOCKER_HOST_NAME` Hostname used in the mails to inform you about changes
 - `MAIL_SMTP_SERVER` Mailserver used to send mails
 - `MAIL_FROM` Address the mails are send from
-- `MAIL_TO` Address the mails are send to
+- `MAIL_TO` Address the mails are send to, multiple addresses can be seperated
+  by comma
 
 The following variables are optional
 
