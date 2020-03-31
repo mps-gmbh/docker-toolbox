@@ -99,6 +99,8 @@ Cron can be configured in the crontab file.
 The following variables are optional
 
 - `MAIL_SMTP_SERVER_PORT` Mailserver port, defaults to 465
+- `MAIL_SMTP_SSL` Enable SSL for smtp server connection, can be `True` oder
+  `False`
 
 If either `MAIL_USER` or `MAIL_PASSWORD` an anonymouse login will be used
 
