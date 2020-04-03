@@ -18,6 +18,7 @@ services:
       - MAIL_SMTP_SERVER_PORT
       - MAIL_USER
       - MAIL_PASSWORD
+      - MAIL_SMTP_SSL
       - LOGLEVEL
     volumes:
       - "./src/test/example_services/base:/compose-mount"

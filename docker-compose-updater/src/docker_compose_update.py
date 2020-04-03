@@ -460,6 +460,7 @@ def write_email(msg_text, msg_subject):
     smtp_server_port = os.environ.get("MAIL_SMTP_SERVER_PORT", 465)
     username = os.environ.get("MAIL_USER", None)
     password = os.environ.get("MAIL_PASSWORD", None)
+    smtp_ssl = os.environ.get("MAIL_SMTP_SSL", "True")
 
     msg = MIMEText(msg_text)
     msg["Subject"] = msg_subject
@@ -486,8 +487,11 @@ def write_email(msg_text, msg_subject):
 
     try:
         # Send the message via our own SMTP server.
-        smtpserver = smtplib.SMTP_SSL(smtp_server_domain, smtp_server_port)
-        if username is not None and password is not None:
+        if smtp_ssl != "False":
+            smtpserver = smtplib.SMTP_SSL(smtp_server_domain, smtp_server_port)
+        else:
+            smtpserver = smtplib.SMTP(smtp_server_domain, smtp_server_port)
+        if username and password:
             smtpserver.login(username, password)
 
         smtpserver.send_message(msg)

@@ -18,6 +18,7 @@ services:
       - MAIL_SMTP_SERVER_PORT
       - MAIL_USER
       - MAIL_PASSWORD
+      - MAIL_SMTP_SSL
       - LOGLEVEL
     volumes:
       - "{{ docker_compose_update.docker_compose_root }}:{{ docker_compose_update.docker_compose_root }}"
