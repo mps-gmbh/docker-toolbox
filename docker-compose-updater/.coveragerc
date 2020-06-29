@@ -3,5 +3,5 @@ branch = True
 omit =
     ./src/test/*
 [report]
-    fail_under = 75
+    fail_under = 80
     show_missing = True

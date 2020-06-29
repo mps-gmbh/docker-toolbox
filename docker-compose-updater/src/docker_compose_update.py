@@ -337,6 +337,14 @@ class Service(object):
         self.next_version = current_version
         self.dockerfile_path = dockerfile_path
 
+    def get_dockerhub_tags_for_image(self, tag_count):
+        return requests.get(
+            "https://registry.hub.docker.com/v2/repositories/library/"
+            + self.image
+            + "/tags?page_size="
+            + str(tag_count)
+        )
+
     def find_next_version(self):
         """ Search on dockerhub for the newest versions of the dockerimage
         :category: YAML block where the search regex is defined.
@@ -348,24 +356,37 @@ class Service(object):
         logging.debug(
             "Searching for regex %s in %s tags", self.search_regex, self.image
         )
-        # Get all tags from dockerhub
-        dockerhub_versions = requests.get(
-            "https://registry.hub.docker.com/v1/repositories/" + self.image + "/tags"
-        )
+        # Get tags from dockerhub, first find out how many are there
+        dockerhub_versions = self.get_dockerhub_tags_for_image(1)
+        # Check if image was not found
         if dockerhub_versions.status_code == 404:
             text = "The dockerimage " + self.image + " could not be found on dockerhub."
             logging.error(text)
             error_mail(text)
             return
 
-        for tag in dockerhub_versions.json():
+        number_of_tags = dockerhub_versions.json()["count"]
+
+        # Get all tags from dockerhub
+        dockerhub_versions = self.get_dockerhub_tags_for_image(number_of_tags)
+
+        for tag in dockerhub_versions.json()["results"]:
             found_tag = re.search(self.search_regex, tag["name"])
             if found_tag is not None:
                 logging.debug("Found tag %s", found_tag.string)
                 if packaging.version.parse(found_tag.string) > packaging.version.parse(
                     self.next_version
                 ):
-                    self.next_version = found_tag.string
+                    # Check if there is an image for the current architecture
+                    for image in tag["images"]:
+                        try:
+                            architechture = os.environ["ARCHITECTURE"]
+                        except KeyError:
+                            # If no architecture is given set amd64 as default
+                            architechture = "amd64"
+                        if image["architecture"] == architechture:
+                            self.next_version = found_tag.string
+                            break
         logging.debug("Current version: %s", self.current_version)
         logging.debug("Newest version: %s", self.next_version)
 
@@ -454,7 +475,7 @@ def write_email(msg_text, msg_subject):
         mail_to = os.environ["MAIL_TO"]
     except KeyError as exception:
         logging.error(
-            "Environment variable %s not " + "specified, cannot send mails", exception
+            "Environment variable %s not specified, cannot send mails", exception
         )
         exit(1)
     smtp_server_port = os.environ.get("MAIL_SMTP_SERVER_PORT", 465)

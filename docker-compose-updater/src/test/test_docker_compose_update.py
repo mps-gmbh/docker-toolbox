@@ -126,16 +126,35 @@ class TestDockerComposeUpdate:
             response.status_code = dockerhub_statuscode
             response.json = mock.Mock(
                 return_value=(
-                    [
-                        {"layer": "", "name": "latest"},
-                        {"layer": "", "name": "3"},
-                        {"layer": "", "name": "3.7.6-buster"},
-                        {"layer": "", "name": "3.7-buster"},
-                        {"layer": "", "name": "3.8.2-buster"},
-                        {"layer": "", "name": "3.8-buster"},
-                        {"layer": "", "name": "3-buster"},
-                        {"layer": "", "name": "buster"},
-                    ]
+                    {
+                        "count": 8,
+                        "results": [
+                            {"images": [{"architecture": "amd64"}], "name": "latest"},
+                            {"images": [{"architecture": "amd64"}], "name": "3"},
+                            {
+                                "images": [{"architecture": "amd64"}],
+                                "name": "3.7.6-buster",
+                            },
+                            {
+                                "images": [{"architecture": "amd64"}],
+                                "name": "3.7-buster",
+                            },
+                            {
+                                "images": [{"architecture": "amd64"}],
+                                "name": "3.8.2-buster",
+                            },
+                            {
+                                "images": [{"architecture": "dummy"}],
+                                "name": "3.9.2-buster",
+                            },
+                            {
+                                "images": [{"architecture": "amd64"}],
+                                "name": "3.8-buster",
+                            },
+                            {"images": [{"architecture": "amd64"}], "name": "3-buster"},
+                            {"images": [{"architecture": "amd64"}], "name": "buster"},
+                        ],
+                    }
                 )
             )
             request_mock.get = mock.Mock(return_value=response)
