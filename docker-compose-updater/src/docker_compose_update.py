@@ -130,7 +130,7 @@ class Updater(object):
                 logging.error("Could not run docker-compose build: %s", error)
                 error_mail(error)
 
-    def up(self):
+    def up(self):  # pylint: disable=invalid-name
         """Start the new Docker containers
         :returns: None
 
@@ -319,6 +319,9 @@ class Updater(object):
         return img_version
 
     def error_mail(self, error):
+        """ Logs an errors and sends a mail about it
+        :returns: None
+        """
         logging.error(error)
         if self.dryrun:
             logging.info("Dryrun, skipping sending mail")
@@ -337,13 +340,31 @@ class Service(object):
         self.next_version = current_version
         self.dockerfile_path = dockerfile_path
 
-    def get_dockerhub_tags_for_image(self, tag_count):
-        return requests.get(
+    def get_dockerhub_tags_for_image(self):
+        logging.debug(
+            "Searching for regex %s in %s tags", self.search_regex, self.image
+        )
+        dockerhub_all_versions = []
+        dockerhub_versions = requests.get(
             "https://registry.hub.docker.com/v2/repositories/library/"
             + self.image
-            + "/tags?page_size="
-            + str(tag_count)
+            + "/tags"
         )
+        # Check if image was not found
+        if dockerhub_versions.status_code == 404:
+            text = "The dockerimage " + self.image + " could not be found on dockerhub."
+            logging.error(text)
+            error_mail(text)
+            return
+
+        while True:
+            for tag in dockerhub_versions.json()["results"]:
+                dockerhub_all_versions.append(tag)
+            if not "next" in dockerhub_versions.json():
+                break
+            dockerhub_versions = requests.get(dockerhub_versions.json()["next"])
+
+        return dockerhub_all_versions
 
     def find_next_version(self):
         """ Search on dockerhub for the newest versions of the dockerimage
@@ -353,24 +374,12 @@ class Service(object):
         docker-compose-versions.yml
 
         """
-        logging.debug(
-            "Searching for regex %s in %s tags", self.search_regex, self.image
-        )
-        # Get tags from dockerhub, first find out how many are there
-        dockerhub_versions = self.get_dockerhub_tags_for_image(1)
-        # Check if image was not found
-        if dockerhub_versions.status_code == 404:
-            text = "The dockerimage " + self.image + " could not be found on dockerhub."
-            logging.error(text)
-            error_mail(text)
+        dockerhub_versions = self.get_dockerhub_tags_for_image()
+
+        if dockerhub_versions is None:
             return
 
-        number_of_tags = dockerhub_versions.json()["count"]
-
-        # Get all tags from dockerhub
-        dockerhub_versions = self.get_dockerhub_tags_for_image(number_of_tags)
-
-        for tag in dockerhub_versions.json()["results"]:
+        for tag in dockerhub_versions:
             found_tag = re.search(self.search_regex, tag["name"])
             if found_tag is not None:
                 logging.debug("Found tag %s", found_tag.string)
@@ -528,8 +537,7 @@ def write_email(msg_text, msg_subject):
         logging.error("Connection to smtpserver failed with with error: %s", str(error))
     except smtplib.SMTPRecipientsRefused as exception:
         logging.error(
-            "Error from smtp server, you are not allowed "
-            + "to send a message to this user: %s",
+            "Error from smtp server, you are not allowed to send a message to this user: %s",
             str(exception),
         )
 
