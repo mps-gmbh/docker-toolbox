@@ -10,6 +10,7 @@ import logging
 import argparse
 import re
 import os
+import sys
 import subprocess
 import socket
 import yaml
@@ -17,7 +18,7 @@ import requests
 import packaging.version
 
 
-class Updater(object):
+class Updater:
 
     """Update a single docker-compose.yml. """
 
@@ -62,12 +63,11 @@ class Updater(object):
                         self.path,
                     )
                     continue
-                else:
-                    logging.debug(
-                        "A new version was found for service %s in %s",
-                        service_name,
-                        self.path,
-                    )
+                logging.debug(
+                    "A new version was found for service %s in %s",
+                    service_name,
+                    self.path,
+                )
                 self.updated_services[service_type][service_name] = service
 
         if not self.updated_services:
@@ -163,7 +163,7 @@ class Updater(object):
                 self.docker_compose_versions = yaml.safe_load(stream)
         except FileNotFoundError as error:
             self.error_mail(error)
-            exit(1)
+            sys.exit(1)
         except yaml.parser.ParserError as error:
             text = f"A YAML error occured: {error}"
             self.error_mail(text)
@@ -315,7 +315,7 @@ class Updater(object):
         else:
             text = "Dockerfile at " + path + " seems to be missing a FROM statement"
             self.error_mail(text)
-            return
+            return None
         return img_version
 
     def error_mail(self, error):
@@ -329,7 +329,7 @@ class Updater(object):
         error_mail(error)
 
 
-class Service(object):
+class Service:
 
     """TODO: Docstring for Service. """
 
@@ -341,6 +341,10 @@ class Service(object):
         self.dockerfile_path = dockerfile_path
 
     def get_dockerhub_tags_for_image(self):
+        """
+        Get all tags available on dockerhub under self.image
+        :returns: list of tags
+        """
         logging.debug(
             "Searching for regex %s in %s tags", self.search_regex, self.image
         )
@@ -355,7 +359,7 @@ class Service(object):
             text = "The dockerimage " + self.image + " could not be found on dockerhub."
             logging.error(text)
             error_mail(text)
-            return
+            return None
 
         while True:
             for tag in dockerhub_versions.json()["results"]:
@@ -416,6 +420,10 @@ def get_hostname():
 
 @contextmanager
 def working_directory(directory):
+    """
+    Switches to the given directory on entry and back to the previouse one
+    when exiting the contextmanager.
+    """
     owd = os.getcwd()
     try:
         os.chdir(directory)
@@ -460,12 +468,17 @@ def initialize_logging():
         text = f"Cannot set LOGLEVEL: Unknown LOGLEVEL {loglevel}"
         logging.error(text)
         error_mail(text)
-        exit(1)
+        sys.exit(1)
 
     logging.getLogger().setLevel(loglevel)
 
 
 def error_mail(error):
+    """
+    Send an E-Mail with the given error message
+
+    :returns: None
+    """
     subject = "[Dockerupdate][" + get_hostname() + "] Error in docker-compose-update"
     text = "The following error uccured:\n" + str(error)
     write_email(text, subject)
@@ -486,7 +499,7 @@ def write_email(msg_text, msg_subject):
         logging.error(
             "Environment variable %s not specified, cannot send mails", exception
         )
-        exit(1)
+        sys.exit(1)
     smtp_server_port = os.environ.get("MAIL_SMTP_SERVER_PORT", 465)
     username = os.environ.get("MAIL_USER", None)
     password = os.environ.get("MAIL_PASSWORD", None)
@@ -562,7 +575,7 @@ def main():
         if not args.recursive:
             updater = Updater(os.path.abspath(args.path), args.dryrun)
             updater.run()
-            exit(0)
+            sys.exit(0)
         # If the recursive option is given, recursiveley search for
         # docker-compose-versions.yml and run the updater for each found path
         pathlist = []

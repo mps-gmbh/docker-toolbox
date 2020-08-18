@@ -43,7 +43,7 @@ jobs:
       - name: Lint with pylint
         run: |
           cd docker-compose-updater
-          pylint --fail-under=8 src
+          pylint --fail-under=9 src
       - name: Test with pytest
         run: |
           cd docker-compose-updater

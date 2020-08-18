@@ -25,7 +25,7 @@ lint: env-test
 flake8: env-test
 	env-test/bin/flake8 src
 pylint: env-test
-	env-test/bin/pylint --fail-under=8 src
+	env-test/bin/pylint --fail-under=9 src
 black: env-test
 	env-test/bin/black --check src
 fix-black: env-test
