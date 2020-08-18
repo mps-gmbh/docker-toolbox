@@ -360,7 +360,7 @@ class Service(object):
         while True:
             for tag in dockerhub_versions.json()["results"]:
                 dockerhub_all_versions.append(tag)
-            if not "next" in dockerhub_versions.json():
+            if "next" not in dockerhub_versions.json():
                 break
             dockerhub_versions = requests.get(dockerhub_versions.json()["next"])
 
@@ -537,7 +537,8 @@ def write_email(msg_text, msg_subject):
         logging.error("Connection to smtpserver failed with with error: %s", str(error))
     except smtplib.SMTPRecipientsRefused as exception:
         logging.error(
-            "Error from smtp server, you are not allowed to send a message to this user: %s",
+            """Error from smtp server, you are not allowed to
+            send a message to this user: %s""",
             str(exception),
         )
 
