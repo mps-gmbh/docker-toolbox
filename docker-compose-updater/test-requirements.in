@@ -1,3 +1,5 @@
 pytest
 pytest-cov
 black
+pylint
+flake8

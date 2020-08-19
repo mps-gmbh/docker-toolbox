@@ -18,8 +18,17 @@ clean:
 	rm -rf env-test/
 
 lint: env-test
-	env-test/bin/black --check ./src/docker_compose_update.py
-fix-lint: env-test
+	make black
+	make pylint
+	make flake8
+
+flake8: env-test
+	env-test/bin/flake8 src
+pylint: env-test
+	env-test/bin/pylint --fail-under=9 src
+black: env-test
+	env-test/bin/black --check src
+fix-black: env-test
 	env-test/bin/black ./src/docker_compose_update.py
 
 requirements: requirements.txt

@@ -1,15 +1,19 @@
+"""
+Test the docker-compose-updater
+"""
 import shutil
-import pytest
 import os
-import requests
 import subprocess
 from unittest import mock
+import pytest
+import requests
 from src.docker_compose_update import Updater
 from src.docker_compose_update import Service
 from src.docker_compose_update import initialize_logging
 
 
-class TestDockerComposeUpdate:
+# pylint: disable=missing-function-docstring,no-self-use
+class TestDockerComposeUpdate:  # pylint: disable=missing-class-docstring
     @pytest.fixture(scope="function")
     def example_services(self):
         """Create a copy of the example_services"""
@@ -108,7 +112,7 @@ class TestDockerComposeUpdate:
         dc_content,
         dockerfile_content,
         dockerhub_statuscode,
-    ):
+    ):  # pylint: disable=unused-argument
         """ Test the run method
         :returns: None
 
@@ -117,7 +121,7 @@ class TestDockerComposeUpdate:
         updater = Updater(path, dryrun)
         with mock.patch(
             "src.docker_compose_update.subprocess"
-        ) as subprocess, mock.patch(
+        ) as subprocess_mock, mock.patch(
             "src.docker_compose_update.write_email"
         ), mock.patch(
             "src.docker_compose_update.requests"
@@ -127,19 +131,21 @@ class TestDockerComposeUpdate:
             )
 
             updater.run()
-            assert subprocess.run.called == dc_run
+            assert subprocess_mock.run.called == dc_run
         docker_compose_path = os.path.join(path, "docker-compose.yml")
-        with open(docker_compose_path) as f:
-            docker_compose = f.readlines()
+        with open(docker_compose_path) as docker_compose_file:
+            docker_compose = docker_compose_file.readlines()
         if dc_content is not None:
             assert docker_compose[4] == dc_content
         if dockerfile_content is not None:
             dockerfile_path = os.path.join(path, "Dockerfile")
-            with open(dockerfile_path) as f:
-                dockerfile = f.readlines()
+            with open(dockerfile_path) as docker_compose_file:
+                dockerfile = docker_compose_file.readlines()
             assert dockerfile[1] == dockerfile_content
 
-    def test_subprocess_error(self, example_services):
+    def test_subprocess_error(
+        self, example_services
+    ):  # pylint: disable=unused-argument
         updater = Updater("./src/test/example_services_test_run/", False)
         with mock.patch(
             "src.docker_compose_update.subprocess.run"
@@ -151,9 +157,9 @@ class TestDockerComposeUpdate:
             updater.up()
             assert subprocess_run.called
 
-    def test_read_not_found(self, example_services):
+    def test_read_not_found(self, example_services):  # pylint: disable=unused-argument
         updater = Updater("./src/test/example_services_test_run/", False)
-        with mock.patch("src.docker_compose_update.exit") as exit_patch:
+        with mock.patch("src.docker_compose_update.sys.exit") as exit_patch:
             exit_patch.side_effect = SystemExit
             try:
                 updater.read()
@@ -161,31 +167,37 @@ class TestDockerComposeUpdate:
                 pass
             assert exit_patch.called
 
-    def test_write_to_empty_docker_compose(self, example_services):
+    def test_write_to_empty_docker_compose(
+        self, example_services
+    ):  # pylint: disable=unused-argument
         docker_compose_path = (
             "./src/test/example_services_test_run/docker_compose_empty"
         )
         updater = Updater(docker_compose_path, False)
         updater.write_to_docker_compose(None, None)
-        with open(os.path.join(docker_compose_path, "docker-compose.yml")) as f:
-            docker_compose = f.readlines()
+        with open(
+            os.path.join(docker_compose_path, "docker-compose.yml")
+        ) as docker_compose_file:
+            docker_compose = docker_compose_file.readlines()
         assert docker_compose == []
 
-    def test_write_to_empty_dockerfile(self, example_services):
+    def test_write_to_empty_dockerfile(
+        self, example_services
+    ):  # pylint: disable=unused-argument
         path = "./src/test/example_services_test_run/dockerfile_empty"
         updater = Updater(path, False)
         dockerfile_path = os.path.join(path, "Dockerfile")
         service = Service("", "", "", dockerfile_path)
         updater.write_to_dockerfile(service)
-        with open(dockerfile_path, "r") as f:
-            dockerfile = f.readlines()
+        with open(dockerfile_path, "r") as docker_compose_file:
+            dockerfile = docker_compose_file.readlines()
         assert dockerfile == []
 
     @pytest.mark.parametrize(
         "loglevel_str", ["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", ""]
     )
     def test_initialize_logging(self, loglevel_str):
-        with mock.patch("src.docker_compose_update.os") as os, mock.patch(
+        with mock.patch("src.docker_compose_update.os") as os_mock, mock.patch(
             "src.docker_compose_update.logging"
         ) as logging:
             loglevel = {
@@ -197,17 +209,17 @@ class TestDockerComposeUpdate:
                 "": logging.INFO,
             }
             if loglevel_str:
-                os.environ = {"LOGLEVEL": loglevel_str}
+                os_mock.environ = {"LOGLEVEL": loglevel_str}
             else:
-                os.environ = {}
+                os_mock.environ = {}
             initialize_logging()
             logging.getLogger().setLevel.assert_called_with(loglevel[loglevel_str])
 
     def test_initialize_logging_error(self):
-        with mock.patch("src.docker_compose_update.os") as os, mock.patch(
+        with mock.patch("src.docker_compose_update.os") as os_mock, mock.patch(
             "src.docker_compose_update.logging", autospec=True
         ) as logging_mock:
-            os.environ = {"LOGLEVEL": "DUMMY"}
+            os_mock.environ = {"LOGLEVEL": "DUMMY"}
             try:
                 initialize_logging()
                 assert False
@@ -222,7 +234,7 @@ def request_dockerhub(status_code):
     Returns a function that models a response form requests.get
     """
     # Build request wrapper to return
-    def request_wrapper(*args, **kwargs):
+    def request_wrapper(*args):
         """
         Models a response from requests.get
         The response depends on the request url in args[0]
