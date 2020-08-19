@@ -102,13 +102,12 @@ The following variables are optional
   `amd64`
 - `MAIL_SMTP_SERVER_PORT` Mailserver port, defaults to 465
 - `MAIL_SMTP_SSL` Enable SSL for smtp server connection, can be `True` oder
-  `False`
+  `False` defaults to `True`
 
-If either `MAIL_USER` or `MAIL_PASSWORD` an anonymouse login will be used
+If either `MAIL_USER` or `MAIL_PASSWORD` are missing an anonymouse login will be used
 
 - `MAIL_USER` Smtp user
 - `MAIL_PASSWORD` Smtp password
-
 - `LOGLEVEL` Loglevel defaults to `INFO`, can be `CRITICAL`, `ERROR`,
   `WARNING`, `INFO` or `DEBUG`
 
