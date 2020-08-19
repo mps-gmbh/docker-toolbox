@@ -122,23 +122,9 @@ class TestDockerComposeUpdate:
         ), mock.patch(
             "src.docker_compose_update.requests"
         ) as request_mock:
-            response = requests.Response()
-            response.status_code = dockerhub_statuscode
-            response.json = mock.Mock(
-                return_value=(
-                    [
-                        {"layer": "", "name": "latest"},
-                        {"layer": "", "name": "3"},
-                        {"layer": "", "name": "3.7.6-buster"},
-                        {"layer": "", "name": "3.7-buster"},
-                        {"layer": "", "name": "3.8.2-buster"},
-                        {"layer": "", "name": "3.8-buster"},
-                        {"layer": "", "name": "3-buster"},
-                        {"layer": "", "name": "buster"},
-                    ]
-                )
+            request_mock.get = mock.Mock(
+                side_effect=request_dockerhub(dockerhub_statuscode)
             )
-            request_mock.get = mock.Mock(return_value=response)
 
             updater.run()
             assert subprocess.run.called == dc_run
@@ -229,3 +215,41 @@ class TestDockerComposeUpdate:
                 pass
             assert not logging_mock.getLogger().setLevel.called
             assert logging_mock.error.called
+
+
+def request_dockerhub(status_code):
+    """
+    Returns a function that models a response form requests.get
+    """
+    # Build request wrapper to return
+    def request_wrapper(*args, **kwargs):
+        """
+        Models a response from requests.get
+        The response depends on the request url in args[0]
+        """
+        response_json = {
+            "count": 8,
+            "next": "https://bla.example.com",
+            "results": [
+                {"images": [{"architecture": "amd64"}], "name": "latest"},
+                {"images": [{"architecture": "amd64"}], "name": "3"},
+                {"images": [{"architecture": "amd64"}], "name": "3.7.6-buster"},
+                {"images": [{"architecture": "amd64"}], "name": "3.7-buster"},
+                {"images": [{"architecture": "amd64"}], "name": "3.8.2-buster"},
+                {"images": [{"architecture": "dummy"}], "name": "3.9.2-buster"},
+                {"images": [{"architecture": "amd64"}], "name": "3.8-buster"},
+                {"images": [{"architecture": "amd64"}], "name": "3-buster"},
+                {"images": [{"architecture": "amd64"}], "name": "buster"},
+            ],
+        }
+        response = requests.Response()
+        response.status_code = status_code
+        response.json = mock.Mock(return_value=response_json)
+        # If this is a request that tries to get the next part from a previouse
+        # response return something without a next part
+        if args[0] == "https://bla.example.com":
+            del response_json["next"]
+            response.json = mock.Mock(return_value=response_json)
+        return response
+
+    return request_wrapper

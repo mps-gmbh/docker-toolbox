@@ -98,6 +98,8 @@ Cron can be configured in the crontab file.
 
 The following variables are optional
 
+- `ARCHITECTURE` architecture of the docker images to look for, defaults to
+  `amd64`
 - `MAIL_SMTP_SERVER_PORT` Mailserver port, defaults to 465
 - `MAIL_SMTP_SSL` Enable SSL for smtp server connection, can be `True` oder
   `False`
