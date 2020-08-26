@@ -97,13 +97,13 @@ class Updater:
                     + service.next_version
                     + "\n"
                 )
-                if service_type == "auto_update":
+                if service_type == "auto_update" and not self.dryrun:
                     if service.dockerfile_path:
                         self.write_to_dockerfile(service)
                         self.build()
                     else:
                         self.write_to_docker_compose(service_name, service)
-            if service_type == "auto_update":
+            if service_type == "auto_update" and not self.dryrun:
                 self.up()
         if self.dryrun:
             logging.info("Dryrun, not sending email")
