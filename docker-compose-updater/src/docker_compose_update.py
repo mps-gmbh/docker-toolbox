@@ -556,6 +556,22 @@ def write_email(msg_text, msg_subject):
         )
 
 
+def get_docker_compose_directories(base_path):
+    """ Get and interator over all directories containing
+    docker-compose-versions.yml files. This does not recurse below a folder
+    that has already been found.
+    :return: Iterator over found directories
+    """
+    subentries = os.listdir(base_path)
+    if "docker-compose-versions.yml" in subentries:
+        yield os.path.join(base_path)
+        return
+    for subpath in subentries:
+        path = os.path.join(base_path, subpath)
+        if os.path.isdir(path):
+            yield from get_docker_compose_directories(path)
+
+
 def main():
     """Entrypoint when used as an executable
     :returns: None
@@ -578,11 +594,7 @@ def main():
             sys.exit(0)
         # If the recursive option is given, recursiveley search for
         # docker-compose-versions.yml and run the updater for each found path
-        pathlist = []
-        for root, _, files in os.walk(args.path):
-            for file in files:
-                if file == "docker-compose-versions.yml":
-                    pathlist.append(root)
+        pathlist = list(get_docker_compose_directories(args.path))
         if not pathlist:
             text = "No docker-compose-versions.yml files where found in the given path"
             logging.warning(text)
