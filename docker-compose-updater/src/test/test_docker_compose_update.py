@@ -10,6 +10,7 @@ import requests
 from src.docker_compose_update import Updater
 from src.docker_compose_update import Service
 from src.docker_compose_update import initialize_logging
+from src.docker_compose_update import get_docker_compose_directories
 
 
 # pylint: disable=missing-function-docstring,no-self-use
@@ -227,6 +228,31 @@ class TestDockerComposeUpdate:  # pylint: disable=missing-class-docstring
                 pass
             assert not logging_mock.getLogger().setLevel.called
             assert logging_mock.error.called
+
+    def test_get_docker_compose_directories(self):
+        directories = get_docker_compose_directories("src/test/example_services")
+        directory_list = list(directories)
+        for test_directory in [
+            "src/test/example_services/empty_versions",
+            "src/test/example_services/up_to_date",
+            "src/test/example_services/base",
+            "src/test/example_services/manual_update",
+            "src/test/example_services/dockerfile_base",
+            "src/test/example_services/manual_update_only",
+            "src/test/example_services/auto_update_only",
+            "src/test/example_services/key_error",
+            "src/test/example_services/docker_compose_empty",
+            "src/test/example_services/dockerfile_empty",
+            "src/test/example_services/no_init_version",
+            "src/test/example_services/yaml_error_in_versions",
+            "src/test/example_services/docker_compose_versions_in_subdir",
+        ]:
+            assert test_directory in directory_list
+        assert "src/test/example_services/empty_dir" not in directory_list
+        assert (
+            "src/test/example_services/docker_compose_versions_in_subdir/subdir"
+            not in directory_list
+        )
 
 
 def request_dockerhub(status_code):
