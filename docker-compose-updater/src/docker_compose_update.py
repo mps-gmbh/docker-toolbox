@@ -563,6 +563,8 @@ def get_docker_compose_directories(base_path):
     :return: Iterator over found directories
     """
     subentries = os.listdir(base_path)
+    if ".docker-compose-update-ignore" in subentries:
+        return
     if "docker-compose-versions.yml" in subentries:
         yield os.path.join(base_path)
         return
