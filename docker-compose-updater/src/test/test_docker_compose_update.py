@@ -98,7 +98,7 @@ class TestDockerComposeUpdate:  # pylint: disable=missing-class-docstring
                 True,
                 False,
                 "    build: .\n",
-                "FROM python:3.8.2-buster \n",
+                "FROM python:latest\n",
                 200,
             ),
             ("dockerfile_empty", True, False, "    build: .\n", None, 200),
