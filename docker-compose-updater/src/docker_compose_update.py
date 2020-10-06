@@ -364,7 +364,7 @@ class Service:
         while True:
             for tag in dockerhub_versions.json()["results"]:
                 dockerhub_all_versions.append(tag)
-            if "next" not in dockerhub_versions.json():
+            if dockerhub_versions.json()["next"] is None:
                 break
             dockerhub_versions = requests.get(dockerhub_versions.json()["next"])
 
