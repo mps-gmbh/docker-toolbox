@@ -255,8 +255,8 @@ class TestDockerComposeUpdate:  # pylint: disable=missing-class-docstring
             assert test_directory in directory_list
         for test_directory in [
             "src/test/example_services_test_run/empty_dir",
-            "src/test/example_services_test_run/docker_compose_versions_in_subdir" +
-            "/subdir",
+            "src/test/example_services_test_run/docker_compose_versions_in_subdir"
+            + "/subdir",
             "src/test/example_services_test_run/ignorefile",
         ]:
             assert test_directory not in directory_list
@@ -293,7 +293,7 @@ def request_dockerhub(status_code):
         # If this is a request that tries to get the next part from a previouse
         # response return something without a next part
         if args[0] == "https://bla.example.com":
-            del response_json["next"]
+            response_json["next"] = None
             response.json = mock.Mock(return_value=response_json)
         return response
 
