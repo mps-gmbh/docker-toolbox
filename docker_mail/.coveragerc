@@ -1,0 +1,7 @@
+[run]
+branch = True
+omit =
+    ./docker_mail/test/*
+[report]
+    fail_under = 80
+    show_missing = True
