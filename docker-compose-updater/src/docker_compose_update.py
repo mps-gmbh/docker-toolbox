@@ -20,7 +20,7 @@ import packaging.version
 
 class Updater:
 
-    """Update a single docker-compose.yml. """
+    """Update a single docker-compose.yml."""
 
     def __init__(self, path, dryrun):
         self.path = path
@@ -36,7 +36,7 @@ class Updater:
         self.updated_services = defaultdict(dict)
 
     def run(self):
-        """ Run this class
+        """Run this class
         :returns: None
 
         """
@@ -114,7 +114,7 @@ class Updater:
         )
 
     def build(self):
-        """ Build the new Docker image
+        """Build the new Docker image
         :returns: None
 
         """
@@ -150,7 +150,7 @@ class Updater:
                 error_mail(error)
 
     def read(self):
-        """ Initialize the class by reading information from the
+        """Initialize the class by reading information from the
         docker-compose.yml and docker-compose-versions.yml
 
         :returns: None
@@ -319,7 +319,7 @@ class Updater:
         return img_version
 
     def error_mail(self, error):
-        """ Logs an errors and sends a mail about it
+        """Logs an errors and sends a mail about it
         :returns: None
         """
         logging.error(error)
@@ -331,7 +331,7 @@ class Updater:
 
 class Service:
 
-    """TODO: Docstring for Service. """
+    """TODO: Docstring for Service."""
 
     def __init__(self, image, search_regex, current_version, dockerfile_path):
         self.image = image
@@ -372,7 +372,7 @@ class Service:
         return dockerhub_all_versions
 
     def find_next_version(self):
-        """ Search on dockerhub for the newest versions of the dockerimage
+        """Search on dockerhub for the newest versions of the dockerimage
         :category: YAML block where the search regex is defined.
 
         :returns: Dict of dockerhub versions for each service specified in
@@ -406,7 +406,7 @@ class Service:
 
 
 def get_hostname():
-    """ Get hostname from env variables or if not available directly form host
+    """Get hostname from env variables or if not available directly form host
     :returns: hostname
 
     """
@@ -434,7 +434,7 @@ def working_directory(directory):
 
 
 def get_commandline_arguments():
-    """ Commandline argument parser for this module
+    """Commandline argument parser for this module
     :returns: namespace with parsed arguments
 
     """
@@ -486,7 +486,7 @@ def error_mail(error):
 
 
 def write_email(msg_text, msg_subject):
-    """ Writes an e-mail with the given text and subject
+    """Writes an e-mail with the given text and subject
 
     :msg_text:(str) Message text
     :msg_subject:(str) Message subject
@@ -558,7 +558,7 @@ def write_email(msg_text, msg_subject):
 
 
 def get_docker_compose_directories(base_path):
-    """ Get and interator over all directories containing
+    """Get and interator over all directories containing
     docker-compose-versions.yml files. This does not recurse below a folder
     that has already been found.
     :return: Iterator over found directories

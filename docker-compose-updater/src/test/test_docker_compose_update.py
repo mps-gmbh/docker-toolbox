@@ -115,7 +115,7 @@ class TestDockerComposeUpdate:  # pylint: disable=missing-class-docstring
         dockerfile_content,
         dockerhub_statuscode,
     ):  # pylint: disable=unused-argument
-        """ Test the run method
+        """Test the run method
         :returns: None
 
         """
