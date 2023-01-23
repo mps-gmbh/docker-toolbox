@@ -8,7 +8,7 @@ env-build:
 	env-build/bin/pip install pip-tools
 	touch env-build
 env-test: test-requirements.txt requirements.txt
-	virtualenv env-test --python=$(which python3)
+	python3 -m venv env-test
 	env-test/bin/pip install -r test-requirements.txt  
 	env-test/bin/pip install -r requirements.txt
 	touch env-test
@@ -29,7 +29,7 @@ pylint: env-test
 black: env-test
 	env-test/bin/black --check src
 fix-black: env-test
-	env-test/bin/black ./src/docker_compose_update.py
+	env-test/bin/black src
 
 requirements: requirements.txt
 requirements.txt: env-build requirements.in
