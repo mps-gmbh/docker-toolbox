@@ -353,7 +353,9 @@ class Service:
         if "/" not in image:
             image = "library/" + self.image
         dockerhub_versions = requests.get(
-            "https://registry.hub.docker.com/v2/repositories/" + image + "/tags"
+            "https://registry.hub.docker.com/v2/repositories/"
+            + image
+            + "/tags?page_size=100"
         )
         # Check if image was not found
         if dockerhub_versions.status_code == 404:
