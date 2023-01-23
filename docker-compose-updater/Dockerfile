@@ -4,20 +4,15 @@
 # this when modifying the file
 # https://docs.docker.com/develop/develop-images/dockerfile_best-practices/
 
-FROM python:3.8.2-alpine3.11
+FROM python:3.11.1-slim-bullseye
 
 WORKDIR /
 
 # Install Docker and docker-compose
-RUN apk add \
-docker \
-gcc \
-libc-dev \
-libffi-dev \
-make \
-openssl-dev \
-python-dev \
-&& pip install docker-compose
+RUN apt-get update && apt-get install -y \
+    cron \
+    docker \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY cron-init.sh /cron-init.sh
 

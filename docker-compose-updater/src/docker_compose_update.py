@@ -119,15 +119,15 @@ class Updater:
 
         """
         if self.dryrun:
-            logging.info("Dryrun, skipping docker-compose build")
+            logging.info("Dryrun, skipping docker compose build")
             return
 
         with working_directory(self.path):
             logging.info("Running docker-compose build")
             try:
-                subprocess.run(["/usr/local/bin/docker-compose", "build"], check=True)
+                subprocess.run(["/usr/local/bin/docker compose", "build"], check=True)
             except subprocess.CalledProcessError as error:
-                logging.error("Could not run docker-compose build: %s", error)
+                logging.error("Could not run docker compose build: %s", error)
                 error_mail(error)
 
     def up(self):  # pylint: disable=invalid-name
@@ -136,17 +136,17 @@ class Updater:
 
         """
         if self.dryrun:
-            logging.info("Dryrun, skipping docker-compose up")
+            logging.info("Dryrun, skipping docker compose up")
             return
 
         with working_directory(self.path):
-            logging.info("Running docker-compose up -d")
+            logging.info("Running docker compose up -d")
             try:
                 subprocess.run(
-                    ["/usr/local/bin/docker-compose", "up", "-d"], check=True
+                    ["/usr/local/bin/docker compose", "up", "-d"], check=True
                 )
             except subprocess.CalledProcessError as error:
-                logging.error("Could not run docker-compose up: %s", error)
+                logging.error("Could not run docker compose up: %s", error)
                 error_mail(error)
 
     def read(self):
